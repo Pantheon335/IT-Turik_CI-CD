@@ -70,33 +70,8 @@ jobs:
     needs: detect
     if: needs.detect.outputs.build == 'true'
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_DB: itturik
-          POSTGRES_USER: itturik
-          POSTGRES_PASSWORD: itturik
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U itturik -d itturik"
-          --health-interval 5s --health-timeout 5s --health-retries 20
-      redis:
-        image: redis:7-alpine
-        ports: ["6379:6379"]
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s --health-timeout 3s --health-retries 20
     env:
       DJANGO_SECRET_KEY: ci-only-not-a-secret
-      DB_ENGINE: django.db.backends.postgresql
-      DB_NAME: itturik
-      DB_USER: itturik
-      DB_PASSWORD: itturik
-      DB_HOST: localhost
-      DB_PORT: "5432"
-      REDIS_URL: redis://localhost:6379/0
-      CELERY_BROKER_URL: redis://localhost:6379/1
       PROFILING_ENABLED: "False"
     defaults:
       run:
@@ -144,6 +119,8 @@ jobs:
       - run: npm ci
       - name: Type check + production build
         run: npm run build
+      - name: Install Chromium for the tests
+        run: npx playwright install --with-deps chromium
       - name: Unit tests
         run: npm run test
 
